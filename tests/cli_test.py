@@ -226,3 +226,11 @@ def test_src_dir_arg(mock_coveralls):
         base_dir='',
         src_dir='foo',
     )
+
+
+@mock.patch.dict(os.environ, {'TRAVIS': 'True'}, clear=True)
+@mock.patch('coveralls.cli.Coveralls')
+def test_merge_option(mock_coveralls):
+    mock_coveralls_instance = mock_coveralls.return_value
+    coveralls.cli.main(argv=['--merge', 'path/to/merge_file'])
+    mock_coveralls_instance.merge.assert_called_with('path/to/merge_file')
