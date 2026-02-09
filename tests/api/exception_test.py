@@ -39,3 +39,9 @@ class CoverallsExceptionTest(unittest.TestCase):
         exc2 = CoverallsException('Value2')
         assert exc1 != exc2
         assert exc1 is not exc2
+
+    def test_hash(self):
+        exc1 = CoverallsException('Value1')
+        exc2 = CoverallsException('Value1')
+        assert hash(exc1) == hash(exc2)
+        assert len({exc1, exc2}) == 1

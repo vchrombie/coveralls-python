@@ -9,6 +9,7 @@ import pytest
 
 from coveralls import Coveralls
 from coveralls.exception import CoverallsException
+from coveralls.reporter import CoverallReporter
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -253,3 +254,30 @@ class ReporterTest(unittest.TestCase):
                 match=r"Couldn't parse .* as Python",
         ):
             Coveralls(repo_token='xxx').get_coverage()
+
+
+class _LegacyAnalysis:
+    def __init__(self):
+        self._executed = [(10, -20)]
+
+    def has_arcs(self):
+        return True
+
+    def missing_branch_arcs(self):
+        return {30: [-40]}
+
+    def arcs_executed(self):
+        return self._executed
+
+    def _branch_lines(self):
+        return [10]
+
+
+def _expected_legacy_branches():
+    return [10, 0, 20, 1, 30, 0, 40, 0]
+
+
+def test_get_arcs_handles_legacy_coverage_analysis():
+    arcs = CoverallReporter.get_arcs(_LegacyAnalysis())
+    assert arcs == _expected_legacy_branches()
+

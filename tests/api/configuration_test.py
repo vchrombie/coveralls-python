@@ -1,3 +1,4 @@
+import builtins
 import os
 import pathlib
 import tempfile
@@ -48,6 +49,28 @@ class Configuration(unittest.TestCase):
         """test local with config in yaml, but without yaml-installed"""
         with unittest.mock.patch.object(log, 'warning') as logger:
             cover = Coveralls()
+
+        logger.assert_called_once_with(
+            'PyYAML is not installed, skipping %s.', cover.config_filename,
+        )
+
+
+    @unittest.mock.patch.dict(
+        os.environ,
+        {'COVERALLS_REPO_TOKEN': 'xxx'},
+        clear=True,
+    )
+    def test_local_config_importerror_simulated(self):
+        real_import = builtins.__import__
+
+        def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
+            if name == 'yaml':
+                raise ImportError('missing yaml')
+            return real_import(name, globals, locals, fromlist, level)
+
+        with unittest.mock.patch('builtins.__import__', side_effect=fake_import):
+            with unittest.mock.patch.object(log, 'warning') as logger:
+                cover = Coveralls()
 
         logger.assert_called_once_with(
             'PyYAML is not installed, skipping %s.', cover.config_filename,

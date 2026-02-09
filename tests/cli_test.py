@@ -1,5 +1,6 @@
 import json
 import os
+import runpy
 from unittest import mock
 
 import pytest
@@ -226,3 +227,24 @@ def test_src_dir_arg(mock_coveralls):
         base_dir='',
         src_dir='foo',
     )
+
+
+@mock.patch('coveralls.cli.Coveralls')
+def test_merge_invokes_coveralls_merge(mock_coveralls):
+    argv = ['--merge=extra.json']
+    coveralls.cli.main(argv=argv)
+    mock_coveralls.return_value.merge.assert_called_once_with('extra.json')
+
+
+def test_package_entrypoint_invokes_cli(monkeypatch):
+    calls = []
+
+    def fake_main():
+        calls.append(True)
+
+    monkeypatch.setattr('coveralls.cli.main', fake_main)
+
+    runpy.run_module('coveralls', run_name='__main__')
+
+    assert calls == [True]
+
